@@ -1,0 +1,14 @@
+---
+- name: Setup target host as KVM server with openvswitch-common
+  hosts: kvm
+  gather_facts: true
+  become: true
+
+  vars:
+    data_disk: "/dev/sda"
+    data_path: "/var/lib/libvirt/images"
+    guest_ssh_port: 2222
+
+  roles:
+  - setup-host
+...
