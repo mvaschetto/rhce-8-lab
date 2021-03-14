@@ -1,0 +1,16 @@
+<network>
+  <name>{{ ext_netnat.name }}</name>
+  <forward dev='ovs-system' mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+    <interface dev='ovs-system'/>
+  </forward>
+  <bridge name='virbr1' stp='on' delay='0'/>
+  <domain name='{{ ext_netnat.name }}'/>
+  <ip address='{{ ext_netnat.address }}' netmask='{{ ext_netnat.subnet_mask }}'>
+    <dhcp>
+      <range start='{{ ext_netnat.dhcp_start }}' end='{{ ext_netnat.dhcp_end }}'/>
+    </dhcp>
+  </ip>
+</network>

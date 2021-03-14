@@ -9,6 +9,7 @@ The environment is based on the Pearson IT certification book: [Red Hat RHCE 8 (
 # Requirments
 -------------
 Ansible >= 2.10
+python3-libvirt
 
 # Tested distribution
 ---------------------

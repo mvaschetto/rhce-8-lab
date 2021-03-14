@@ -22,6 +22,14 @@
 
 - name: Prepare device {{ data_disk }}
   block:
+  - name: Ensure parted is installed
+    package:
+      name: "{{ item }}"
+      state: present
+    loop:
+    - parted
+    - python3-apt
+
   - name: Create partition on disk {{ data_disk }}
     parted:
       device: "{{ data_disk }}"
@@ -40,6 +48,7 @@
 
   - name: Check persistent of the mount point by reboot server
     reboot:
+      msg: Server reboot!
     when: result_mount.changed
 
   - name: check mount point {{ data_path }}
