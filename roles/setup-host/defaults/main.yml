@@ -1,2 +1,1 @@
 data_path: /var/lib/libvirt/images
-guest_ssh_port: 2222
