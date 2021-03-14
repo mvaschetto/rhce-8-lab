@@ -24,7 +24,7 @@ add {{ ansible_user }} to libvrit group      TAGS: [setup-host]
 ## vars
 -------
 
-| Name | Default value | Optional | Description |
-|:-----|:--------------|:---------|:------------|
-| data_disk | None | Yes | Define a raw device to configure and mount on data_path |
-| data_path | /var/lib/libvirt/images | No | Define where the disks for qemu are stored |
+| Name | Default value | Optional | type | Description |
+|:-----|:--------------|:---------|:-----|:------------|
+| data_disk | None | Yes | string |Define a raw device to configure and mount on data_path |
+| data_path | /var/lib/libvirt/images | string | No | Define where the disks for qemu are stored |

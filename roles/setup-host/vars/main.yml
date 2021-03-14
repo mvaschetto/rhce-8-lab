@@ -4,3 +4,6 @@ packages:
 - libvirt-daemon-system
 - openvswitch-common
 - openvswitch-switch
+- python3-apt
+- python3-libvirt
+- python3-lxml

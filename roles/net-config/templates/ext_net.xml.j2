@@ -1,0 +1,7 @@
+<network>
+  <name>{{ ext_net.name }}</name>
+  <forward mode='open'/>
+  <bridge name='virbr1' stp='on' delay='0'/>
+  <domain name='{{ ext_net.name }}'/>
+  </ip>
+</network>

@@ -1,0 +1,16 @@
+ext_netnat:
+  name: "ext-net"
+  address: "192.168.100.1"
+  subnet_mask: "255.255.255.0"
+  dhcp_start: "192.168.100.100"
+  dhcp_end: "192.168.100.254"
+ext_net:
+  name: "ext-net"
+  address: "{{ ext-address | default(None) }}"
+  subnet_mask: "{{ ext-subnet_mask | default(None) }}"
+int_net:
+  name: "int-net"
+  subnet: "10.10.10.0"
+  subnet_mask: "255.255.255.0"
+  dhcp_start: "10.10.10.100"
+  dhcp_end: "10.10.10.254"

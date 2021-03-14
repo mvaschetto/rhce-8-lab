@@ -1,0 +1,5 @@
+<network>
+  <name>{{ int_net.name }}</name>
+    <bridge name='virbr2' stp='on' delay='0'/>
+    <domain name='{{ int_net.name }}'/>
+</network>

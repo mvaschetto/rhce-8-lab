@@ -1,0 +1,157 @@
+---
+- name: Get existing networks
+  community.libvirt.virt_net:
+    command: list_nets
+  register: result_network
+  tags:
+  - net-config
+
+- name: Create natted network
+  block:
+  - name: enable ipv4 forwarding
+    ansible.posix.sysctl:
+      name: net.ipv4.ip_forward
+      state: present
+      sysctl_set: true
+      value: "1"
+  
+  - name: check the ipv4 forwarding has been enabled correctly
+    command: "sysctl net.ipv4.ip_forward"
+    register: result_forward
+
+  - name: as been enable ipv4 forwarding
+    debug:
+      msg: "IPv4 is not enabled!"
+    when: result_forward.stdout != 'net.ipv4.ip_forward = 1'
+    failed_when: result_forward.stdout != 'net.ipv4.ip_forward = 1'
+
+  - name: Define external natted bridge {{ ext_netnat.name }}
+    community.libvirt.virt_net:
+      command: define
+      autostart: true
+      name: "{{ ext_netnat.name }}"
+      xml: '{{ lookup("template", "templates/ext_netnat.xml.j2")}}'
+    when: ext_netnat.name not in result_network
+    register: result_ext_netnat
+
+  - name: Modify external natted bridge {{ ext_netnat.name }}
+    community.libvirt.virt_net:
+      command: modify
+      autostart: true
+      name: "{{ ext_netnat.name }}"
+      xml: '{{ lookup("template", "templates/ext_netnat.xml.j2")}}'
+    when: ext_netnat.name in result_network
+    register: result_ext_netnat
+
+  - name: Set autostart on external device {{ ext_netnat.name }}
+    community.libvirt.virt_net:
+      autostart: true
+      name: "{{ ext_netnat.name }}"
+  
+  - name: Start external device {{ ext_netnat.name }}
+    community.libvirt.virt_net:
+      command: create
+      name: "{{ ext_netnat.name }}"
+
+  when: 
+  - nat_net
+  tags:
+  - net-config
+
+- name: Define external bridge interface 
+  community.libvirt.virt_net:
+    command: define
+    name: "{{ ext_net.name }}"
+    xml: '{{ lookup("template", "templates/ext_net.xml.j2")}}'
+  when: 
+  - not nat_net
+  - ext_net.name not in result_network
+  register: result-extnet
+  tags:
+  - net-config
+
+- name: Modify external bridge interface 
+  community.libvirt.virt_net:
+    command: modify
+    name: "{{ ext_netnat.name }}"
+    xml: '{{ lookup("template", "templates/ext_net.xml.j2")}}'
+  when: 
+  - not nat_net
+  - ext_net.name in result_network
+  register: result-extnet
+  tags:
+  - net-config
+
+- name: Define Host-only internal network 
+  community.libvirt.virt_net:
+    command: define
+    name: "{{ int_net.name }}"
+    xml: '{{ lookup("template", "templates/int_net.xml.j2")}}'
+  when: int_net.name not in result_network
+  register: result_int_net
+
+- name: Modify Host-only internal network 
+  community.libvirt.virt_net:
+    command: modify
+    name: "{{ int_net.name }}"
+    xml: '{{ lookup("template", "templates/int_net.xml.j2")}}'
+  when: int_net.name in result_network
+  register: result_int_net
+  tags:
+  - net-config
+
+- name: Set autostart on external device 
+  community.libvirt.virt_net:
+    autostart: true
+    name: "{{ ext_net.name }}"
+  when: not nat_net
+  tags:
+  - net-config
+
+- name: Set autostart on internal device
+  community.libvirt.virt_net:
+    autostart: true
+    name: "{{ int_net.name }}"
+  tags:
+  - net-config
+
+- name: Activate external network 
+  community.libvirt.virt_net:
+    command: create
+    name: "{{ ext_net.name }}"
+  when: not nat_net
+  tags:
+  - net-config
+
+- name: Activate internal network 
+  community.libvirt.virt_net:
+    command: create
+    name: "{{ int_net.name }}"
+  tags:
+  - net-config
+
+- name: reboot server
+  reboot:
+    msg: Server reboot!
+  when: (result_ext_net is defined and result_ext_net.changed) or 
+        (result_extnet_nat is defined and result_extnet_nat.changed) or 
+        (result_int_net is defined and result_int_net.changed)
+  tags:
+  - net-config
+
+- name: Get interfaces infos after reboot
+  community.libvirt.virt_net:
+    command: facts
+  tags:
+  - net-config
+
+- name: Check all networks are setup and active
+  debug:
+    msg: "Network is not configured properly!"
+  when: ansible_libvirt_networks['ext-net']['state'] != 'active' or 
+        ansible_libvirt_networks['int-net']['state'] != 'active' or
+        ansible_libvirt_networks['ext-net']['autostart'] != 'yes' or 
+        ansible_libvirt_networks['int-net']['autostart'] != 'yes'
+  tags:
+  - net-config
+...
