@@ -1,0 +1,76 @@
+---
+- name: Check distribution
+  debug:
+    msg: "Distribution of target host is not supported"
+  when: (ansible_distribution != "Debian")
+  failed_when: (ansible_distribution != "Debian")
+  tags:
+  - always
+
+- name: ensure the directories exists
+  file:
+    state: directory
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0600
+  loop:
+  - "{{ data_path }}"
+  - '~/.ssh'
+  tags:
+  - setup-host
+
+- name: Prepare device {{ data_disk }}
+  block:
+  - name: Create partition on disk {{ data_disk }}
+    parted:
+      device: "{{ data_disk }}"
+      label: gpt
+      number: 1
+      state: present
+      fs_type: xfs
+
+  - name: mount {{ data_disk }}1 on {{ data_path }}
+    mount:
+      fstype: xfs
+      src: "{{ data_disk }}1"
+      path: "{{ data_path }}"
+      state: mounted
+    register: result_mount
+
+  - name: Check persistent of the mount point by reboot server
+    reboot:
+    when: result_mount.changed
+
+  - name: check mount point {{ data_path }}
+    shell: "/usr/bin/mountpoint -q {{ data_path }}"
+    register: result_mountpoint
+
+  - name: check {{ data_path }} mounted
+    debug:
+      msg: "WARNING the mountpoint {{ data_path }} is not mounted!"
+    when: result_mountpoint.rc != 0
+    failed_when: result_mountpoint.rc != 0
+  when: data_disk is defined
+  tags:
+  - setup-host
+
+- name: install packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ packages }}"
+  tags:
+  - setup-host
+
+- name: add {{ ansible_user }} to libvrit group
+  user:
+    name: "{{ ansible_user }}"
+    append: true
+    generate_ssh_key: true
+    groups:
+    - "libvirt"
+  tags:
+  - setup-host
+...

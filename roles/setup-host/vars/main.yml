@@ -1,0 +1,6 @@
+packages:
+- qemu-system
+- libvirt-clients
+- libvirt-daemon-system
+- openvswitch-common
+- openvswitch-switch
