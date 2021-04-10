@@ -10,7 +10,7 @@ ext_net:
   subnet_mask: "{{ ext-subnet_mask | default(None) }}"
 int_net:
   name: "int-net"
-  subnet: "10.10.10.0"
+  address: "10.10.10.1"
   subnet_mask: "255.255.255.0"
   dhcp_start: "10.10.10.100"
   dhcp_end: "10.10.10.254"

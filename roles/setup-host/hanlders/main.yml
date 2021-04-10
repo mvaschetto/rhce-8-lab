@@ -1,0 +1,5 @@
+---
+- name: server reboot
+  reboot:
+    msg: "Server is going to be rebooted!"
+...

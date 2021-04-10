@@ -1,0 +1,12 @@
+cloud_image_path: "{{ data_path }}/centos9-cloud.qcow2"
+cloud_image_url: "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2"
+root_pass: "$6$c4.8nL8/DTKT1wxc$0PlZYnAG5vngE7gOnEh3DvlJVEC4GsGRggC6iegDt/zz45096it3pabsNbhqi1oVPBxHrBf7VgS3yQXel.8am1" #is R3dH4t1!
+control_ssh_key: '{ lookup("template", "~/.ssh/id_rsa.pub") }'
+servers:
+- name: control
+- name: ansible1
+  add_disk: true 
+- name: ansible2
+  add_disk: true
+- name: ansible3
+- name: ansible4

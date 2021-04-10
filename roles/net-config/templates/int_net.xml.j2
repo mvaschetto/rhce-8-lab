@@ -1,5 +1,10 @@
 <network>
   <name>{{ int_net.name }}</name>
-    <bridge name='virbr2' stp='on' delay='0'/>
-    <domain name='{{ int_net.name }}'/>
+  <bridge name='virbr2' stp='on' delay='0'/>
+  <domain name='{{ int_net.name }}'/>
+  <ip address='{{ int_net.address }}' netmask='{{ int_net.subnet_mask }}'>
+    <dhcp>
+      <range start='{{ int_net.dhcp_start }}' end='{{ int_net.dhcp_end }}'/>
+    </dhcp>
+  </ip>
 </network>

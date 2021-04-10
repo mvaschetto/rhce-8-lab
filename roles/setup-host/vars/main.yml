@@ -1,4 +1,5 @@
 packages:
+- qemu
 - qemu-system
 - libvirt-clients
 - libvirt-daemon-system
@@ -7,3 +8,4 @@ packages:
 - python3-apt
 - python3-libvirt
 - python3-lxml
+- cloud-utils
