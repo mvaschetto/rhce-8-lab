@@ -7,13 +7,24 @@
   tags:
   - always
 
+- name: Purge AppArmor
+  package:
+    name: apparmor
+    state: absent
+  notify: server reboot
+  loop:
+  - apparmor
+  - libapparmor1
+  tags:
+  - setup-host
+
 - name: ensure the directories exists
   file:
     state: directory
     path: "{{ item }}"
-    owner: root
-    group: root
-    mode: 0600
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: 0755
   loop:
   - "{{ data_path }}"
   - '~/.ssh'

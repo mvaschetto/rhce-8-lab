@@ -1,0 +1,98 @@
+---
+- name: check cloud image
+  stat:
+    path: "{{ cloud_image_path }}"
+  register: stat_file
+  tags:
+  - create-lab
+
+- name: check qcow disks
+  stat:
+    path: "{{ data_path }}/{{ item.name }}/{{ item.name }}_rootDisk.qcow2"
+  register: qcow_stat_file
+  with_items:
+  - "{{ servers }}"
+  tags:
+  - create-lab
+
+- name: check additional qcow disks
+  stat:
+    path: "{{ data_path }}/{{ item.name }}/{{ item.name }}_addDisk.qcow2"
+  register: add_qcow_stat_file
+  when: '"add_disk" in item'
+  with_items:
+  - "{{ servers }}"
+  tags:
+  - create-lab
+
+- name: check cloudinit iso
+  stat:
+    path: "{{ data_path }}/{{ item.name }}/{{ item.name }}_cloudinit.iso"
+  register: iso_stat_file
+  with_items:
+  - "{{ servers }}"
+  tags:
+  - create-lab
+
+- name: download cloud image locally
+  uri:
+    url: "{{ cloud_image_url }}"
+    dest: "{{ cloud_image_path }}"
+  when: not stat_file.stat.exists
+  tags:
+  - create-lab
+
+- name: create directory for servers
+  file:
+    state: directory
+    path: "{{ data_path }}/{{ item.name }}"
+  with_items:
+  - "{{ servers }}"
+  tags:
+  - create-lab
+
+- name: Copy cloud image source for servers
+  copy:
+    remote_src: yes
+    src: "{{ cloud_image_path }}"
+    dest: "{{ data_path }}/{{ item.item.name }}/{{ item.item.name }}_rootDisk.qcow2"
+  when: item.stat.exists == false or force_qcow is defined or force is defined
+  with_items:
+  - "{{ qcow_stat_file.results }}"
+  tags:
+  - create-lab
+
+- name: Resize disks for instances
+  command: "/usr/bin/qemu-img resize {{ data_path }}/{{ item.item.name }}/{{ item.item.name }}_rootDisk.qcow2 20G"
+  when: item.stat.exists == false or force_qcow is defined or force is defined
+  with_items:
+  - "{{ qcow_stat_file.results }}"
+  tags:
+  - create-lab
+
+- name: generate cloud_init configuration for all the server
+  template:
+    src: templates/cloud_init.yaml.j2
+    dest: "{{ data_path }}/{{ item.name }}/{{ item.name }}_cloudinit.yaml"
+  register: template_result
+  with_items:
+  - "{{ servers }}"
+  tags:
+  - create-lab
+
+- name: generate iso for cloudinit
+  command: "/usr/bin/cloud-localds {{ data_path }}/{{ item.item.name }}/{{ item.item.name }}_cloudinit.iso {{ data_path }}/{{ item.item.name }}/{{ item.item.name }}_cloudinit.yaml"
+  when: item.stat.exists == false or force_cloudinit is defined or force is defined or template_result.changed
+  with_items:
+  - "{{ iso_stat_file.results }}"
+  tags:
+  - create-lab
+
+- name: create additional disks
+  command: "/usr/bin/qemu-img create -f qcow2 {{ data_path }}/{{ item.item.name }}/{{ item.item.name }}_addDisk.qcow2 5G"
+  when: (item.stat.exists is defined and item.stat.exists == false) or force_qcow is defined or force is defined
+  with_items:
+  - "{{ add_qcow_stat_file.results }}"
+  tags:
+  - create-lab
+...

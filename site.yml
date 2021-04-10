@@ -6,10 +6,9 @@
 
   vars:
     data_disk: "/dev/sda"
-    data_path: "/var/lib/libvirt/images"
-    guest_ssh_port: 2222
-
+  
   roles:
   - setup-host
   - net-config
+  - create-lab
 ...
